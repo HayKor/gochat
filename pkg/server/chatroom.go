@@ -17,8 +17,8 @@ func (cr *ChatRoom) Broadcast(msg Message) {
 	cr.mu.Lock()
 	defer cr.mu.Unlock()
 	for client := range cr.Clients {
-		msgToSend := []byte(fmt.Sprintf("[%s][%s]: %s", msg.RoomName, msg.From, msg.Content))
-		_, err := client.Write(msgToSend)
+		msgToSend := fmt.Sprintf("[%s][%s]: %s", msg.RoomName, msg.From, msg.Content)
+		_, err := client.Write([]byte(msgToSend))
 		if err != nil {
 			log.Println("Problem reading message from user ", err.Error())
 
