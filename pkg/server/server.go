@@ -78,20 +78,23 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	defer func() {
 		room.mu.Lock()
+		fmt.Fprint(conn, "You've been disconnected from the room.\n")
 		delete(room.Clients, conn)
 		room.mu.Unlock()
 	}()
 
+	buf := make([]byte, 2048)
 	for {
-		var msg string
-		_, err := fmt.Fscanln(conn, &msg)
+		n, err := conn.Read(buf)
 		if err != nil {
+			log.Println("Error reading message.", err)
 			break
 		}
+		msg := string(buf[:n])
 		room.Broadcast(Message{
 			RoomName: roomName,
 			From:     userName,
-			Content:  msg,
+			Content:  string(msg),
 		})
 	}
 }
