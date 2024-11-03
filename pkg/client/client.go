@@ -18,10 +18,11 @@ func NewClient() *Client {
 func (c *Client) Start() error {
 	conn, err := net.Dial("tcp", ":3000")
 	if err != nil {
-		// fmt.Println("Error connecting to server:", err)
 		return err
 	}
 	defer conn.Close()
+	c.conn = conn
+
 	go c.acceptMesssagesLoop()
 	c.sendMessagesLoop()
 
