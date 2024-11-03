@@ -32,7 +32,7 @@ func main() {
 		if scanner.Scan() {
 			msg := scanner.Text()
 
-			_, err := conn.Write([]byte(msg))
+			_, err := conn.Write([]byte(msg + "\n"))
 			if err != nil {
 				fmt.Println("Error sending message:", err)
 				break
