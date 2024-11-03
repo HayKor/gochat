@@ -10,12 +10,12 @@ import (
 type ChatRoom struct {
 	Name    string
 	Clients map[net.Conn]bool
-	Mutex   sync.Mutex
+	mu      sync.Mutex
 }
 
 func (cr *ChatRoom) Broadcast(msg Message) {
-	cr.Mutex.Lock()
-	defer cr.Mutex.Unlock()
+	cr.mu.Lock()
+	defer cr.mu.Unlock()
 	for client := range cr.Clients {
 		_, err := client.Write([]byte(fmt.Sprintf("[%s][%s]: %s\n", msg.RoomName, msg.From, msg.Content)))
 		if err != nil {
