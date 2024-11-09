@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	server := server.NewServer(":3000")
-	log.Fatal(server.Start())
+	srv := server.NewServer(":3000")
+	log.Fatal(srv.Start())
 }
