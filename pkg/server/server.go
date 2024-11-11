@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -45,6 +46,7 @@ func (s *Server) Start() error {
 	s.listener = listener
 
 	go s.acceptLoop()
+	defer s.terminate()
 	<-s.quitCh
 
 	return nil
@@ -77,15 +79,27 @@ func (s *Server) handleConnection(conn net.Conn) {
 	room.Clients[conn] = true
 
 	defer func() {
-		room.mu.Lock()
 		fmt.Fprint(conn, "You've been disconnected from the room.\n")
+		leaveMessage := fmt.Sprintf("[SYSTEM] %s has left the server.\n", userName)
+
+		room.mu.Lock()
+
+		conn.Close()
 		delete(room.Clients, conn)
 		room.mu.Unlock()
+
+		// Unlock before you can Broadcast System Message
+		room.BroadcastSystemMessage(leaveMessage)
 	}()
 
 	buf := make([]byte, 2048)
 	for {
 		n, err := conn.Read(buf)
+		if err == io.EOF {
+			log.Printf("Left the server: %s\n", conn.RemoteAddr().String())
+			break
+		}
+
 		if err != nil {
 			log.Println("Error reading message.", err)
 			break
@@ -97,4 +111,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 			Content:  string(msg),
 		})
 	}
+}
+
+func (s *Server) terminate() {
+	s.quitCh <- struct{}{}
 }
